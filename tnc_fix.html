@@ -4,17 +4,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <style>
-    /* DYNAMIC RESPONSIVE FIXES */
+    /* 1. PREVENT ANDROID FONT BOOSTING */
+    html, body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* 2. DYNAMIC CONTAINER */
     .dbank-terms-container {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        padding: 16px; /* Adds safe spacing from screen edges */
-        overflow-x: hidden; /* Prevents side-scrolling */
-        background-color: #ffffff;
+        padding: 16px; 
+        overflow-x: hidden; 
     }
 
-    /* Force text to wrap correctly on small Android screens */
+    /* 3. FORCE WRAPPING (Fixes whitespace bug) */
     .dbank-terms-container * {
         box-sizing: border-box;
         word-wrap: break-word;
@@ -23,10 +31,10 @@
         max-width: 100%;
     }
 
-    /* Standardize Lists for Android/iOS consistency */
+    /* 4. STANDARDIZE LISTS */
     .dbank-terms-container ol, 
     .dbank-terms-container ul {
-        padding-left: 24px !important; /* Overrides inline margins for better alignment */
+        padding-left: 24px !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
     }
@@ -36,16 +44,35 @@
         padding-left: 4px;
     }
 
-    /* Ensure images or other objects don't overflow */
-    .dbank-terms-container img {
-        height: auto;
-        max-width: 100%;
-    }
-    
-    /* Fix for the justified text on small screens creating gaps */
+    /* 5. RESET PARAGRAPH MARGINS */
     .dbank-terms-container p {
         margin-right: 0 !important;
         margin-left: 0 !important;
+    }
+
+    /* --- THE ZOOM FIX --- */
+    /* This detects mobile devices (screens smaller than 768px) 
+       and forces the text to be smaller than the inline 18px. */
+    @media screen and (max-width: 768px) {
+        .dbank-terms-container, 
+        .dbank-terms-container p, 
+        .dbank-terms-container span, 
+        .dbank-terms-container li, 
+        .dbank-terms-container div, 
+        .dbank-terms-container a,
+        .dbank-terms-container strong,
+        .dbank-terms-container b {
+            /* !important is required to override the inline style='font-size:18px' */
+            font-size: 14px !important; 
+            line-height: 1.5 !important;
+        }
+
+        /* Keep headers slightly larger/bolder to distinguish them */
+        .dbank-terms-container h1,
+        .dbank-terms-container h1 span {
+            font-size: 16px !important;
+            line-height: 1.4 !important;
+        }
     }
 </style>
 </head>
