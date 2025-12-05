@@ -1,0 +1,95 @@
+CREATE TABLE commons.feature_config_mast (
+	id uuid NOT NULL,
+	module_code varchar(255) NOT NULL,
+	transaction_code varchar(255) NULL,
+	override_transaction_code varchar(60) NULL,
+	config_code varchar(255) NOT NULL,
+	config_data jsonb NULL,
+	created_by varchar(255) NULL,
+	created_at timestamp NULL,
+	updated_by varchar(255) NULL,
+	updated_at timestamp NULL,
+	transaction_type varchar(255) NULL,
+	app_version varchar(255) NULL,
+	"version" int2 NULL,
+	is_active bool NULL,
+	segmentation_type varchar NULL,
+	CONSTRAINT feature_config_mast_pk PRIMARY KEY (id)
+);
+
+
+CREATE TABLE commons.audit_log_mast (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	url varchar(250) NULL,
+	http_method varchar(4) NULL,
+	client_ip varchar(50) NULL,
+	request_header text NULL,
+	response_header text NULL,
+	request_body jsonb NULL,
+	response_body jsonb NULL,
+	http_status int4 NULL,
+	user_id varchar(50) NULL,
+	pod_name varchar(50) NULL,
+	client_session_id varchar(75) NULL,
+	client_correlation_id varchar(75) NULL,
+	client_request_id varchar(75) NULL,
+	x_correlation_id varchar(75) NULL,
+	server_correlation_id varchar(75) NULL,
+	transaction_id varchar(75) NULL,
+	latitude varchar(20) NULL,
+	longitude varchar(20) NULL,
+	module_code varchar(4) NULL,
+	transaction_code varchar(4) NULL,
+	module_description varchar(150) NULL,
+	transaction_description varchar(250) NULL,
+	response_time int4 NULL,
+	remark text NULL,
+	start_time timestamp NULL,
+	end_time timestamp NULL,
+	source_id varchar(25) NULL,
+	flag_quick_access bool NULL,
+	transaction_time timestamp NULL,
+	transaction_date date NULL,
+	transaction_status_code varchar NULL,
+	transaction_status_description varchar NULL,
+	additional_info jsonb NULL,
+	created_by varchar NULL,
+	created_at timestamp NOT NULL,
+	updated_by varchar NULL,
+	updated_at timestamp NULL,
+	transaction_type varchar NULL,
+	CONSTRAINT audit_log_mast_pk PRIMARY KEY (id, created_at)
+)
+PARTITION BY RANGE (created_at);
+CREATE INDEX u_id_md_cd_trx_cd_idx ON ONLY commons.audit_log_mast USING btree (user_id, module_code, transaction_code);
+
+
+CREATE TABLE commons.integration_log_mast (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	destination_system varchar NOT NULL,
+	destination_url varchar NOT NULL,
+	client_correlation_id varchar NULL,
+	server_correlation_id varchar NULL,
+	transaction_id varchar NULL,
+	request_method varchar NOT NULL,
+	request_header varchar NOT NULL,
+	request_time timestamp NOT NULL,
+	request_body jsonb NOT NULL,
+	http_status int2 NOT NULL,
+	response_header varchar NOT NULL,
+	response_time timestamp NOT NULL,
+	response_body jsonb NOT NULL,
+	processing_time int8 NOT NULL,
+	remark varchar NULL,
+	pod_name varchar NOT NULL,
+	created_by varchar NULL,
+	created_at timestamp NOT NULL,
+	updated_by varchar NULL,
+	updated_at timestamp NULL,
+	client_request_id varchar NULL,
+	CONSTRAINT integration_log_mast_pkey PRIMARY KEY (id, created_at)
+)
+PARTITION BY RANGE (created_at)
+TABLESPACE audit_tblspc
+;
+CREATE INDEX integration_log_mast_idx ON ONLY commons.integration_log_mast USING btree (client_correlation_id, transaction_id, created_by);
