@@ -93,3 +93,170 @@ PARTITION BY RANGE (created_at)
 TABLESPACE audit_tblspc
 ;
 CREATE INDEX integration_log_mast_idx ON ONLY commons.integration_log_mast USING btree (client_correlation_id, transaction_id, created_by);
+
+
+
+
+CREATE TABLE auth.cust_mast (
+	id uuid NOT NULL,
+	access_cd varchar(20) NULL,
+	cif_no varchar(20) NULL,
+	is_pswd_changed int4 NULL,
+	last_login_dt timestamp NOT NULL,
+	create_dt timestamp NOT NULL,
+	"version" varchar NULL,
+	hsm_offset varchar NULL,
+	is_locked varchar(1) NULL,
+	login_attempt numeric NULL,
+	is_converted varchar(1) NULL,
+	acct_relationship varchar(1) NULL,
+	is_pswd_reset int4 NULL,
+	registration_card_type varchar(1) NULL,
+	card_no varchar(16) NULL,
+	atm_cif_no varchar(20) NULL,
+	visa_master_cif_no varchar(20) NULL,
+	amex_cif_no varchar(20) NULL,
+	pswd varchar(50) NULL,
+	token_req_tag_status varchar(1) NULL,
+	registration_dt timestamp NULL,
+	pswd_gen_dt timestamp NULL,
+	block_reason varchar NULL,
+	last_update_on timestamp NULL,
+	last_update_by varchar NULL,
+	last_update_etl_on timestamp NULL,
+	last_chg_pwd timestamp NULL,
+	is_on_boarding varchar(3) NULL,
+	is_login_via_email varchar(1) NULL,
+	has_activated_in_new_dob varchar(1) NULL,
+	app_id varchar NULL,
+	soft_token_status varchar NULL,
+	is_mpin_blocked varchar(1) NULL,
+	is_device_blocked varchar(1) NULL,
+	first_app_id varchar NULL,
+	last_mpin_reset timestamp NULL,
+	dt_activated_in_new_dob timestamp NULL,
+	last_unlink_device_dt timestamp NULL,
+	last_biometric_reset_dt timestamp NULL,
+	app_version varchar NULL,
+	force_upgrade_app_version varchar NULL,
+	activated_dt timestamp NULL,
+	last_update_app_version timestamp NULL,
+	counter_forgot_password numeric NULL,
+	last_forgot_password_dt timestamp NULL,
+	reactivate_status varchar NULL,
+	fuid varchar(20) NULL,
+	status_cd numeric NULL,
+	ecafe_method varchar(1) NULL,
+	security_aware_dt timestamp NULL,
+	last_notify timestamp NULL,
+	question_desc varchar NULL,
+	question_cd varchar NULL,
+	answer varchar NULL,
+	keycloak_key varchar NULL,
+	keycloak_cust_id varchar NULL,
+	flag_sso bool NULL,
+	flag_dbankpro20 varchar NULL,
+	is_otp_blocked varchar NULL,
+	last_journey varchar NULL,
+	"language" varchar NULL,
+	validate_password_attempt numeric DEFAULT 0 NOT NULL,
+	is_blocked_from_back_office varchar DEFAULT '0'::character varying NULL,
+	pswd_reset_counter numeric DEFAULT 0 NULL,
+	pswd_reset_last_dt timestamp NULL,
+	pswd_reset_exp_dt timestamp NULL,
+	journey_transaction_id uuid NULL,
+	flag10_disable bool DEFAULT false NULL,
+	last_block_dt timestamp NULL,
+	last_unblock_dt timestamp NULL,
+	CONSTRAINT cust_mast_pk PRIMARY KEY (id)
+);
+CREATE INDEX cust_mast_access_cd_idx ON auth.cust_mast USING btree (access_cd);
+CREATE INDEX cust_mast_amex_cif_no_bigint_idx ON auth.cust_mast USING btree (((amex_cif_no)::bigint)) WHERE ((amex_cif_no)::text <> ''::text);
+CREATE INDEX cust_mast_amex_cif_no_idx ON auth.cust_mast USING btree (amex_cif_no);
+CREATE INDEX cust_mast_atm_cif_no_bigint_idx ON auth.cust_mast USING btree (((atm_cif_no)::bigint)) WHERE ((atm_cif_no)::text <> ''::text);
+CREATE INDEX cust_mast_atm_cif_no_idx ON auth.cust_mast USING btree (atm_cif_no);
+CREATE INDEX cust_mast_card_no_idx ON auth.cust_mast USING btree (card_no);
+CREATE INDEX cust_mast_mig_access_cd_upper ON auth.cust_mast USING btree (upper((access_cd)::text));
+CREATE INDEX cust_mast_status_cd_idx ON auth.cust_mast USING btree (status_cd, id);
+CREATE INDEX cust_mast_visa_master_cif_no_bigint_idx ON auth.cust_mast USING btree (((visa_master_cif_no)::bigint)) WHERE ((visa_master_cif_no)::text <> ''::text);
+CREATE INDEX cust_mast_visa_master_cif_no_idx ON auth.cust_mast USING btree (visa_master_cif_no);
+
+
+
+CREATE TABLE auth.cust_device (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	id_cust uuid NOT NULL,
+	device_id varchar NOT NULL,
+	device_model varchar NOT NULL,
+	manufacturer varchar NOT NULL,
+	platform varchar NOT NULL,
+	os_version varchar NULL,
+	imei varchar NULL,
+	token_key varchar NULL,
+	app_id varchar NULL,
+	created_time timestamp NULL,
+	created_by varchar NULL,
+	modified_time timestamp NULL,
+	modified_by varchar NULL,
+	CONSTRAINT cust_device_pkey1 PRIMARY KEY (id, id_cust)
+)
+PARTITION BY HASH (id_cust);
+CREATE UNIQUE INDEX cust_device_uk_id_cust ON ONLY auth.cust_device USING btree (id_cust);
+
+
+
+CREATE TABLE auth.cust_profile (
+	id uuid DEFAULT gen_random_uuid() NOT NULL,
+	cust_id uuid NOT NULL,
+	access_cd varchar NOT NULL,
+	cif_no varchar NULL,
+	"name" varchar NULL,
+	short_nm varchar NULL,
+	friendly_nm varchar NULL,
+	email varchar NULL,
+	dob timestamp NULL,
+	gender varchar(1) NULL,
+	marital_status varchar(1) NULL,
+	home_phone varchar NULL,
+	occupation_cd varchar NULL,
+	income_range_cd varchar NULL,
+	prefer_contact_no varchar NULL,
+	contact_type_cd varchar NULL,
+	default_acct_id varchar NULL,
+	acct_down_file_format varchar NULL,
+	trx_hist_down_file_format varchar NULL,
+	"version" varchar NULL,
+	address varchar NULL,
+	country varchar NULL,
+	zip varchar NULL,
+	id_num varchar NULL,
+	id_type varchar(2) NULL,
+	id_country varchar(3) NULL,
+	citizenship varchar(3) NULL,
+	pr_cd varchar(1) NULL,
+	country_of_domicile varchar(3) NULL,
+	insider_cd varchar(1) NULL,
+	promote_mail_cd varchar(1) NULL,
+	cpf_num varchar NULL,
+	cdp_num varchar NULL,
+	salutation varchar NULL,
+	atm_cif_no varchar NULL,
+	visa_master_cif_no varchar NULL,
+	amex_cif_no varchar NULL,
+	mobile_no varchar NULL,
+	tfa_sms_mobile_no_block varchar NULL,
+	sel_language_cd varchar(5) NULL,
+	last_update_on timestamp NULL,
+	last_update_by varchar NULL,
+	last_update_etl_on timestamp NULL,
+	etl_timestamp timestamp NULL,
+	is_subscribe int4 NULL,
+	segment_category varchar NULL,
+	segment varchar(5) NULL,
+	CONSTRAINT cust_profile_cust_id_idx_unique UNIQUE (cust_id),
+	CONSTRAINT cust_profile_pk PRIMARY KEY (id)
+);
+CREATE INDEX cust_profile_mig_access_cd_upper ON auth.cust_profile USING btree (upper((access_cd)::text));
+CREATE INDEX cust_profile_mig_atm_cif_cast ON auth.cust_profile USING btree (atm_cif_no);
+CREATE INDEX cust_profile_mig_email_upper ON auth.cust_profile USING btree (upper((email)::text));
+CREATE INDEX cust_profile_new_email_idx ON auth.cust_profile USING btree (email);
