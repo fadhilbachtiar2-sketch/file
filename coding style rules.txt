@@ -1,0 +1,152 @@
+i want to update QWEN.md , next time there is a task i want you to code with several rules :
+1. Dependency Injection: Favor Constructor Injection
+✅ Use @RequiredArgsConstructor (Lombok) or explicit constructors instead of field injection (@Autowired on fields).
+❌ Avoid @Autowired on fields—it hides dependencies and makes unit testing harder.
+
+2. Immutability & Final Fields
+Mark fields as final wherever possible.
+Prefer immutable objects (especially for configuration, DTOs, value objects).
+Reduces side effects and improves thread safety.
+
+3. Use Records (Java 14+) for DTOs/Value Objects
+Replace boilerplate POJOs with record for immutable data carriers.
+Ideal for request/response models, Kafka messages, etc.
+
+4. Avoid Magic Values & Use Constants or Enums
+Replace hardcoded strings/numbers with private static final constants or enums.
+Improves readability and maintainability.
+
+5. Prefer Composition Over Inheritance
+Favor interfaces and delegation.
+Inheritance increases coupling; composition offers flexibility.
+6. Use Meaningful Names
+Class, method, and variable names should reveal intent.
+Avoid abbreviations unless universally understood (id, url, dto are okay).
+7. Keep Methods Small and Single-Responsibility
+Methods should do one thing and do it well.
+Ideal length: < 20 lines.
+Extract logic into private methods with descriptive names.
+8. Handle Exceptions Properly
+Never catch and ignore exceptions.
+Use specific exception types  (DanamonBaseException)
+9. Validate Inputs Early
+Use Bean Validation (@Valid, @NotBlank, @NotNull, custom validators).
+Fail fast on invalid input at API boundaries.
+10. Use Optional Judiciously
+Use Optional only as a return type—not for fields, parameters, or collections.
+Avoid Optional.get() without isPresent() check; prefer orElseThrow() or ifPresent().
+11. Avoid Static Utility Classes When Possible
+Static methods are hard to mock/test.
+If needed, keep them stateless and pure (e.g., MathUtils, StringUtils).
+Prefer injectable services for logic that may need mocking.
+12. Configuration: Externalize with @ConfigurationProperties
+Avoid @Value for multiple related properties.
+Use type-safe configuration classes.
+13. Use SLF4J for Logging
+Never use System.out.println().
+Use parameterized logging to avoid unnecessary string concatenation:
+14. Use var Sparingly (Java 10+)
+Only when the type is obvious from the right-hand side.
+Avoid in public APIs or complex expressions.
+15. Avoid null – Design for Null Safety
+Return empty collections (Collections.emptyList()) instead of null.
+Use Optional for possibly absent return values.
+Consider @NonNull/@Nullable annotations (e.g., from JetBrains or Spring).
+16. Modularize Code (Clean Architecture / Hexagonal)
+Separate concerns: controller → service → repository.
+Avoid business logic in controllers or entities.
+Use domain models, not just anemic entities.
+17. Use Lombok Wisely
+Acceptable: @Data, @Value, @RequiredArgsConstructor, @Builder.
+Avoid: @ToString/@EqualsAndHashCode on JPA entities (can cause lazy-loading issues).
+Never use Lombok to hide poor design.
+18. Prefer List over ArrayList in APIs
+Program to interfaces, not implementations.
+19. Use CompletableFuture or Reactive (WebFlux) Judiciously
+Only adopt reactive if you have a full non-blocking stack (DB, clients, etc.).
+In traditional Spring MVC (your case), prefer synchronous code unless you have clear async needs (e.g., Kafka listeners, batch jobs).
+20. Avoid Overusing Annotations
+Annotations are powerful but can obscure flow.
+Prefer explicit configuration when it improves readability.
+21. Keep JPA Entities Clean
+Avoid business logic in entities.
+Use DTOs for external APIs; don’t expose entities directly.
+Be cautious with bidirectional relationships and lazy loading.
+22. Use Layered DTOs or Hierarchical DTOs 
+Uses parent-child DTO relationships (e.g.,TransferRequest contains AccountInfo ) seperate AccountInfo in another DTO class
+another example :
+// Separate classes
+public record AccountInfo(String id, String type) {}
+public record Money(BigDecimal amount, String currency) {}
+
+// Composed DTO
+public record FundTransferRequest(AccountInfo sender, AccountInfo receiver, Money amount) {}
+
+23. Manage Transaction Boundaries Carefully
+Never put @Transactional on controllers or facades that aren’t part of the domain boundary.
+Prefer service-layer transactions with clear isolation levels and timeouts.
+Beware of @Transactional on private or final methods—it won’t work due to Spring proxying.
+Use readOnly = true for read-only operations to optimize performance (e.g., in JPA/Hibernate).
+24. Avoid "God Services" and Enforce Bounded Contexts
+A PaymentService should not handle notifications, auditing, fraud checks, and accounting.
+Split concerns using domain-driven design (DDD) principles:
+PaymentProcessingService
+FraudEvaluationService
+AuditLogService
+This improves modularity, testing, and team scalability.
+
+25. Use sealed Classes (Java 17+) for Controlled Inheritance
+Great for modeling finite state machines or command hierarchies:
+java
+example :
+public sealed interface TransferResult permits Success, InsufficientFunds, BlockedAccount {}
+Enables exhaustive switch patterns and prevents uncontrolled subclassing.
+
+26. Prefer record + @JsonCreator (Jackson) for Deserialization Safety
+When using records with Jackson, explicitly define creators to avoid reliance on parameter names (which can break with obfuscation or compiler flags):
+example : 
+public record TransferRequest(String fromAccount, String toAccount, BigDecimal amount) {
+    @JsonCreator
+    public TransferRequest(@JsonProperty("fromAccount") String fromAccount, ...) { ... }
+}
+
+27. 
+Store in YAML (or similar config files like application.yml, config.yaml, etc.)
+These are environment-specific, infrequently changed, and required at startup:
+
+Infrastructure & Deployment Settings
+Server ports, hostnames, TLS/SSL settings
+Database connection URLs, credentials (preferably via secrets management)
+Cache (Redis, Memcached) endpoints
+Message broker (Kafka, RabbitMQ) bootstrap servers
+Framework & Library Configuration
+Logging levels and appenders
+Thread pool sizes, timeouts, retry policies
+Feature flags that control system behavior at startup (e.g., enable-metrics: true)
+External Service Endpoints
+URLs for third-party APIs
+OAuth2 client IDs/secrets (again, better via secrets vaults)
+Build/Environment Profiles
+dev, staging, prod specific overrides
+
+28. 
+ Store in Database (or external config store like Consul, etcd, or Spring Cloud Config with DB backend)
+These are dynamic, user-managed, or business-rule-driven settings that may change without redeployment:
+example :
+Business Rules & Policies
+Interest rates, fee structures, approval thresholds (especially in banking)
+Workflow configurations (e.g., “require manager approval if amount > $10k”)
+User or Tenant-Specific Preferences
+UI themes, notification preferences, language settings
+Feature toggles per customer (in multi-tenant systems)
+Operational Parameters That Change Frequently
+Retry counts for failed transactions
+Polling intervals for batch jobs
+Kafka consumer group offsets (though usually managed by Kafka itself)
+Audit & Compliance Settings
+Retention policies, logging verbosity per module
+Regulatory flags that may vary by region
+
+for code implementations :
+i already have table for this the table is commons.feature_config_mast you can check the code in danamon-module-commons at class
+ConfigMasterServiceImpl with method name getConfigMaster
